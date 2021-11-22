@@ -6,6 +6,8 @@ import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon';
 import { Options, OptionPrimitive, CheckMark } from '@keystone-ui/options';
 import { Popover } from '@keystone-ui/popover';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'react-i18next';
+
 import { ListMeta } from '../../../../types';
 import { useSelectedFields } from './useSelectedFields';
 
@@ -43,6 +45,7 @@ export function FieldSelection({
 }) {
   const router = useRouter();
   const selectedFields = useSelectedFields(list, fieldModesByFieldPath);
+  const { t } = useTranslation();
 
   const setNewSelectedFields = (selectedFields: string[]) => {
     if (isArrayEqual(selectedFields, list.initialColumns)) {
@@ -57,7 +60,7 @@ export function FieldSelection({
     if (fieldModesByFieldPath[fieldPath] === 'read') {
       fields.push({
         value: fieldPath,
-        label: list.fields[fieldPath].label,
+        label: t(`${list.key}.${list.fields[fieldPath].label}`),
         isDisabled: selectedFields.size === 1 && selectedFields.has(fieldPath),
       });
     }
@@ -70,7 +73,7 @@ export function FieldSelection({
         return (
           <Button weight="link" css={{ padding: 4 }} {...triggerProps}>
             <span css={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
-              {selectedFields.size} column{selectedFields.size === 1 ? '' : 's'}{' '}
+              {selectedFields.size} {t('column'+(selectedFields.size === 1 ? '' : 's'))}{' '}
               <ChevronDownIcon size="smallish" />
             </span>
           </Button>
@@ -88,6 +91,7 @@ export function FieldSelection({
             value={fields.filter(option => selectedFields.has(option.value))}
             options={fields}
             components={fieldSelectionOptionsComponents}
+            placeholder={t('Select columns to show...')}
           />
         </Box>
       </div>

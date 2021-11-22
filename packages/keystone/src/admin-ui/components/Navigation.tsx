@@ -8,6 +8,8 @@ import { Button } from '@keystone-ui/button';
 import { Popover } from '@keystone-ui/popover';
 import { MoreHorizontalIcon } from '@keystone-ui/icons/icons/MoreHorizontalIcon';
 import { ChevronRightIcon } from '@keystone-ui/icons/icons/ChevronRightIcon';
+import { useTranslation } from 'react-i18next';
+
 import { NavigationProps, ListMeta, AuthenticatedItem } from '../../types';
 
 import { useKeystone } from '../context';
@@ -63,6 +65,8 @@ export const NavItem = ({ href, children, isSelected: _isSelected }: NavItemProp
 const AuthenticatedItemDialog = ({ item }: { item: AuthenticatedItem | undefined }) => {
   const { apiPath } = useKeystone();
   const { spacing, typography } = useTheme();
+  const { t } = useTranslation();
+
   return (
     <div
       css={{
@@ -76,7 +80,7 @@ const AuthenticatedItemDialog = ({ item }: { item: AuthenticatedItem | undefined
     >
       {item && item.state === 'authenticated' ? (
         <div css={{ fontSize: typography.fontSize.small }}>
-          Signed in as <strong>{item.label}</strong>
+          {t('Signed in as')} <strong>{item.label}</strong>
         </div>
       ) : (
         <div css={{ fontSize: typography.fontSize.small }}>GraphQL Playground and Docs</div>
@@ -166,12 +170,14 @@ export const NavigationContainer = ({ authenticatedItem, children }: NavigationC
 
 export const ListNavItem = ({ list }: { list: ListMeta }) => {
   const router = useRouter();
+  const { t } = useTranslation();
+
   return (
     <NavItem
       isSelected={router.pathname.split('/')[1] === `/${list.path}`.split('/')[1]}
       href={`/${list.path}`}
     >
-      {list.label}
+      {t(list.label)}
     </NavItem>
   );
 };
@@ -197,7 +203,7 @@ export const Navigation = () => {
     authenticatedItem,
     visibleLists,
   } = useKeystone();
-
+  const { t } = useTranslation();
   if (visibleLists.state === 'loading') return null;
   // This visible lists error is critical and likely to result in a server restart
   // if it happens, we'll show the error and not render the navigation component/s
@@ -228,7 +234,7 @@ export const Navigation = () => {
 
   return (
     <NavigationContainer authenticatedItem={authenticatedItem}>
-      <NavItem href="/">Dashboard</NavItem>
+      <NavItem href="/">{t('Dashboard')}</NavItem>
       <ListNavItems lists={renderableLists} />
     </NavigationContainer>
   );

@@ -18,6 +18,7 @@ import { Button } from '@keystone-ui/button';
 import { Tooltip } from '@keystone-ui/tooltip';
 import { LoadingDots } from '@keystone-ui/loading';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FieldProps, ListMeta } from '../../../../../types';
 import {
   getRootGraphQLFieldsFromFieldController,
@@ -109,10 +110,10 @@ export function Cards({
   });
 
   const client = useApolloClient();
-
+  const { t } = useTranslation();
   const [isLoadingLazyItems, setIsLoadingLazyItems] = useState(false);
   const [showConnectItems, setShowConnectItems] = useState(false);
-  const [hideConnectItemsLabel, setHideConnectItemsLabel] = useState<'Cancel' | 'Done'>('Cancel');
+  const [hideConnectItemsLabel, setHideConnectItemsLabel] = useState<'Cancel' | 'Done'>(t('Cancel'));
   const editRef = useRef<HTMLDivElement | null>(null);
 
   const isMountedRef = useRef(false);
@@ -132,12 +133,12 @@ export function Cards({
   if (itemsState.kind === 'loading') {
     return (
       <div>
-        <LoadingDots label={`Loading items for ${field.label} field`} />
+        <LoadingDots label={`${t('Loading items for')} ${t(localList.key + '.' + field.label)}`} />
       </div>
     );
   }
   if (itemsState.kind === 'error') {
-    return <span css={{ color: 'red' }}>{itemsState.message}</span>;
+    return <span css={{ color: 'red' }}>{t(itemsState.message)}</span>;
   }
 
   return (
@@ -158,9 +159,8 @@ export function Cards({
           const isEditMode = !!(onChange !== undefined) && value.itemsBeingEdited.has(id);
           return (
             <CardContainer role="status" mode={isEditMode ? 'edit' : 'view'}>
-              <VisuallyHidden as="h2">{`${field.label} ${index + 1} ${
-                isEditMode ? 'edit' : 'view'
-              } mode`}</VisuallyHidden>
+              <VisuallyHidden as="h2">{`${field.label} ${index + 1} ${isEditMode ? 'edit' : 'view'
+                } mode`}</VisuallyHidden>
               {isEditMode ? (
                 <InlineEdit
                   list={foreignList}
@@ -231,11 +231,11 @@ export function Cards({
                         }}
                         tone="active"
                       >
-                        Edit
+                        {t('Edit')}
                       </Button>
                     )}
                     {field.display.removeMode === 'disconnect' && onChange !== undefined && (
-                      <Tooltip content="This item will not be deleted. It will only be removed from this field.">
+                      <Tooltip content={t("This item will not be deleted. It will only be removed from this field.")}>
                         {props => (
                           <Button
                             size="small"
@@ -251,7 +251,7 @@ export function Cards({
                             {...props}
                             tone="negative"
                           >
-                            Remove
+                            {t('Remove')}
                           </Button>
                         )}
                       </Tooltip>
@@ -265,7 +265,7 @@ export function Cards({
                         as={Link}
                         href={`/${foreignList.path}/${id}`}
                       >
-                        View {foreignList.singular} details
+                        {t('View {{val}} details', { val: t(foreignList.singular) })}
                       </Button>
                     )}
                   </Stack>
@@ -295,7 +295,7 @@ export function Cards({
               isDisabled={onChange === undefined}
               list={foreignList}
               isLoading={isLoadingLazyItems}
-              placeholder={`Select a ${foreignList.singular}`}
+              placeholder={`${t('Select')} ${t(foreignList.singular)}`}
               portalMenu
               state={{
                 kind: 'many',
@@ -338,7 +338,7 @@ export function Cards({
                             ...value,
                             currentIds: newCurrentIds,
                           });
-                          setHideConnectItemsLabel('Done');
+                          setHideConnectItemsLabel(t('Done'));
                         }
                       }
                     } finally {
@@ -397,7 +397,7 @@ export function Cards({
                   });
                 }}
               >
-                Create {foreignList.singular}
+                {`${t('Create')} ${t(foreignList.singular)}`}
               </Button>
             )}
             {field.display.inlineConnect && (
@@ -407,10 +407,10 @@ export function Cards({
                 tone="passive"
                 onClick={() => {
                   setShowConnectItems(true);
-                  setHideConnectItemsLabel('Cancel');
+                  setHideConnectItemsLabel(t('Cancel'));
                 }}
               >
-                Link existing {foreignList.singular}
+                {`${t('Link existing')} ${t(foreignList.singular)}`}
               </Button>
             )}
           </Stack>
@@ -419,8 +419,8 @@ export function Cards({
       {/* TODO: this may not be visible to the user when they invoke the save action. Maybe scroll to it? */}
       {forceValidation && (
         <Text color="red600" size="small">
-          You must finish creating and editing any related {foreignList.label.toLowerCase()} before
-          saving the {localList.singular.toLowerCase()}
+          {t('You must finish creating and editing any related {{foreignList}} before saving the {{localList}}',
+           { foreignList: t(foreignList.label), localList: t(foreignList.singular)})}
         </Text>
       )}
     </Stack>

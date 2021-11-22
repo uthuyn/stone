@@ -7,6 +7,7 @@ import { jsx, Box } from '@keystone-ui/core';
 import { Drawer } from '@keystone-ui/modals';
 import { useToasts } from '@keystone-ui/toast';
 import { LoadingDots } from '@keystone-ui/loading';
+import { useTranslation } from 'react-i18next';
 
 import { gql, useMutation } from '../apollo';
 import { useKeystone, useList } from '../context';
@@ -27,6 +28,7 @@ export function CreateItemDrawer({
 }) {
   const { createViewFieldModes } = useKeystone();
   const list = useList(listKey);
+  const { t } = useTranslation();
 
   const toasts = useToasts();
 
@@ -68,11 +70,11 @@ export function CreateItemDrawer({
 
   return (
     <Drawer
-      title={`Create ${list.singular}`}
+      title={`${t('Create')} ${t(list.singular)}`}
       width="wide"
       actions={{
         confirm: {
-          label: `Create ${list.singular}`,
+          label: `${t('Create')} ${t(list.singular)}`,
           loading,
           action: () => {
             const newForceValidation = invalidFields.size !== 0;
@@ -98,7 +100,7 @@ export function CreateItemDrawer({
                 onCreate({ id: data.item.id, label });
                 toasts.addToast({
                   title: label,
-                  message: 'Created Successfully',
+                  message: t('Created Successfully'),
                   tone: 'positive',
                 });
               })
@@ -106,7 +108,7 @@ export function CreateItemDrawer({
           },
         },
         cancel: {
-          label: 'Cancel',
+          label: t('Cancel'),
           action: onClose,
         },
       }}
@@ -121,12 +123,13 @@ export function CreateItemDrawer({
           }
         />
       )}
-      {createViewFieldModes.state === 'loading' && <LoadingDots label="Loading create form" />}
+      {createViewFieldModes.state === 'loading' && <LoadingDots label={t("Loading create form")} />}
       {error && (
         <GraphQLErrorNotice networkError={error?.networkError} errors={error?.graphQLErrors} />
       )}
       <Box paddingY="xlarge">
         <Fields
+          listKey={list.key}
           fields={list.fields}
           fieldModes={
             createViewFieldModes.state === 'loaded' ? createViewFieldModes.lists[list.key] : null

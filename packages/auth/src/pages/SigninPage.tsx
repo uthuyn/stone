@@ -11,6 +11,8 @@ import { Notice } from '@keystone-ui/notice';
 import { useMutation, gql } from '@keystone-next/keystone/admin-ui/apollo';
 import { useRawKeystone, useReinitContext } from '@keystone-next/keystone/admin-ui/context';
 import { useRouter } from '@keystone-next/keystone/admin-ui/router';
+import { useTranslation } from 'react-i18next';
+
 import { SigninContainer } from '../components/SigninContainer';
 
 type SigninPageProps = {
@@ -57,6 +59,7 @@ export const SigninPage = ({
   const reinitContext = useReinitContext();
   const router = useRouter();
   const rawKeystone = useRawKeystone();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (rawKeystone.authenticatedItem.state === 'authenticated') {
@@ -90,15 +93,15 @@ export const SigninPage = ({
           }
         }}
       >
-        <H1>Sign In</H1>
+        <H1>{t('Sign In')}</H1>
         {error && (
-          <Notice title="Error" tone="negative">
-            {error.message}
+          <Notice title={t("Error")} tone="negative">
+            {t(error.message)}
           </Notice>
         )}
         {data?.authenticate?.__typename === failureTypename && (
-          <Notice title="Error" tone="negative">
-            {data?.authenticate.message}
+          <Notice title={t("Error")} tone="negative">
+            {t(data?.authenticate.message)}
           </Notice>
         )}
         <Stack gap="medium">
@@ -110,7 +113,7 @@ export const SigninPage = ({
             name="identity"
             value={state.identity}
             onChange={e => setState({ ...state, identity: e.target.value })}
-            placeholder={identityField}
+            placeholder={t(identityField)}
             ref={identityFieldRef}
           />
           {mode === 'signin' && (
@@ -123,7 +126,7 @@ export const SigninPage = ({
                 name="password"
                 value={state.secret}
                 onChange={e => setState({ ...state, secret: e.target.value })}
-                placeholder={secretField}
+                placeholder={t(secretField)}
                 type="password"
               />
             </Fragment>
@@ -133,10 +136,10 @@ export const SigninPage = ({
         {mode === 'forgot password' ? (
           <Stack gap="medium" across>
             <Button type="submit" weight="bold" tone="active">
-              Log reset link
+              {t('Log reset link')}
             </Button>
             <Button weight="none" tone="active" onClick={() => setMode('signin')}>
-              Go back
+              {t('Go back')}
             </Button>
           </Stack>
         ) : (
@@ -151,7 +154,7 @@ export const SigninPage = ({
               }
               type="submit"
             >
-              Sign In
+              {t('Sign In')}
             </Button>
             {/* Disabled until we come up with a complete password reset workflow */}
             {/* <Button weight="none" tone="active" onClick={() => setMode('forgot password')}>

@@ -6,6 +6,8 @@ import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon';
 import { Options } from '@keystone-ui/options';
 import { PopoverDialog, usePopover } from '@keystone-ui/popover';
 import { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import { ListMeta } from '../../../../types';
 import { useRouter } from '../../../../admin-ui/router';
 import { fieldSelectionOptionsComponents } from './FieldSelection';
@@ -19,6 +21,8 @@ export function SortSelection({
   orderableFields: Set<string>;
 }) {
   const sort = useSort(list, orderableFields);
+  const { t } = useTranslation();
+
   const { isOpen, setOpen, trigger, dialog, arrow } = usePopover({
     placement: 'bottom',
     modifiers: [{ name: 'offset', options: { offset: [0, 8] } }],
@@ -35,10 +39,9 @@ export function SortSelection({
       >
         <span css={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
           {sort
-            ? `${list.fields[sort.field].label} ${
-                { ASC: 'ascending', DESC: 'descending' }[sort.direction]
-              }`
-            : 'No field'}
+            ? `${t(`${list.key}.${list.fields[sort.field].label}`)} ${{ ASC: t('ascending'), DESC: t('descending') }[sort.direction]
+            }`
+            : t('No field')}
           <ChevronDownIcon size="smallish" />
         </span>
       </Button>
@@ -80,17 +83,18 @@ function SortSelectionPopoverContent({
 }) {
   const sort = useSort(list, orderableFields);
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <Stack padding="medium" css={{ minWidth: 320 }} gap="small">
       <div css={{ position: 'relative' }}>
         <Heading textAlign="center" type="h5">
-          Sort
+          {t('Sort')}
         </Heading>
       </div>
       <Divider />
       <Options
-        value={sort ? { label: list.fields[sort.field].label, value: sort.field } : noFieldOption}
+        value={sort ? { label: t(`${list.key}.${list.fields[sort.field].label}`), value: sort.field } : noFieldOption}
         components={fieldSelectionOptionsComponents}
         onChange={newVal => {
           const fieldPath: string = (newVal as any).value;
@@ -112,8 +116,9 @@ function SortSelectionPopoverContent({
           onClose();
         }}
         options={[...orderableFields]
-          .map(fieldPath => ({ label: list.fields[fieldPath].label, value: fieldPath }))
+          .map(fieldPath => ({ label: t(`${list.key}.${list.fields[fieldPath].label}`), value: fieldPath }))
           .concat(noFieldOption)}
+        placeholder={t('Select...')}
       />
     </Stack>
   );

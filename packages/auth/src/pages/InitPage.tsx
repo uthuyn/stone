@@ -259,6 +259,7 @@ const InitPage = ({ fieldPaths, listKey, enableWelcome }: InitPageProps) => {
             <GraphQLErrorNotice errors={error?.graphQLErrors} networkError={error?.networkError} />
           )}
           <Fields
+          listKey={listKey}
             fields={fields}
             fieldModes={null}
             forceValidation={forceValidation}

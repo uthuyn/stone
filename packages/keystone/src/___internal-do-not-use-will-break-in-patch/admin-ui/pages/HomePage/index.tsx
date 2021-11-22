@@ -7,6 +7,7 @@ import { Center, Inline, Heading, VisuallyHidden, jsx, useTheme } from '@keyston
 import { PlusIcon } from '@keystone-ui/icons/icons/PlusIcon';
 import { DrawerController } from '@keystone-ui/modals';
 import { LoadingDots } from '@keystone-ui/loading';
+import { useTranslation } from 'react-i18next';
 
 import { makeDataGetter } from '../../../../admin-ui/utils';
 import { CreateItemDrawer } from '../../../../admin-ui/components/CreateItemDrawer';
@@ -30,6 +31,8 @@ const ListCard = ({ listKey, count, hideCreate }: ListCardProps) => {
   const list = useList(listKey);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation();
+
   return (
     <div css={{ position: 'relative' }}>
       <Link
@@ -53,29 +56,29 @@ const ListCard = ({ listKey, count, hideCreate }: ListCardProps) => {
           },
         }}
       >
-        <h3 css={{ margin: `0 0 ${spacing.small}px 0` }}>{list.label} </h3>
+        <h3 css={{ margin: `0 0 ${spacing.small}px 0` }}>{t(list.label)} </h3>
         {count.type === 'success' ? (
           <span css={{ color: colors.foreground, textDecoration: 'none' }}>
-            {count.count} item{count.count !== 1 ? 's' : ''}
+            {count.count} {t('item'+ (count.count !== 1 ? 's' : ''))}
           </span>
         ) : count.type === 'error' ? (
           count.message
         ) : count.type === 'loading' ? (
-          <LoadingDots label={`Loading count of ${list.plural}`} size="small" tone="passive" />
+          <LoadingDots label={`${t('Loading count of')} ${t(list.plural)}`} size="small" tone="passive" />
         ) : (
-          'No access'
+          t('No access')
         )}
       </Link>
       {hideCreate === false && (
         <CreateButton
-          title={`Create ${list.singular}`}
+          title={`${t('Create')} ${t(list.singular)}`}
           disabled={isCreateModalOpen}
           onClick={() => {
             setIsCreateModalOpen(true);
           }}
         >
           <PlusIcon size="large" />
-          <VisuallyHidden>Create {list.singular}</VisuallyHidden>
+          <VisuallyHidden>{t('Create')} {t(list.singular)}</VisuallyHidden>
         </CreateButton>
       )}
       <DrawerController isOpen={isCreateModalOpen}>
@@ -128,6 +131,7 @@ export const HomePage = () => {
     adminMeta: { lists },
     visibleLists,
   } = useKeystone();
+  const { t } = useTranslation();
   const query = useMemo(
     () => gql`
     query {
@@ -150,10 +154,10 @@ export const HomePage = () => {
   const dataGetter = makeDataGetter(data, error?.graphQLErrors);
 
   return (
-    <PageContainer header={<Heading type="h3">Dashboard</Heading>}>
+    <PageContainer header={<Heading type="h3">{t('Dashboard')}</Heading>}>
       {visibleLists.state === 'loading' ? (
         <Center css={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
-          <LoadingDots label="Loading lists" size="large" tone="passive" />
+          <LoadingDots label={t("Loading lists")} size="large" tone="passive" />
         </Center>
       ) : (
         <Inline
@@ -170,8 +174,8 @@ export const HomePage = () => {
               return (
                 <span css={{ color: 'red' }}>
                   {visibleLists.error instanceof Error
-                    ? visibleLists.error.message
-                    : visibleLists.error[0].message}
+                    ? t(visibleLists.error.message)
+                    : t(visibleLists.error[0].message)}
                 </span>
               );
             }
@@ -185,7 +189,7 @@ export const HomePage = () => {
                   count={
                     data
                       ? result.errors
-                        ? { type: 'error', message: result.errors[0].message }
+                        ? { type: 'error', message: t(result.errors[0].message) }
                         : { type: 'success', count: data[key] }
                       : { type: 'loading' }
                   }

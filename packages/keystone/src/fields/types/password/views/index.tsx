@@ -12,6 +12,8 @@ import { XIcon } from '@keystone-ui/icons/icons/XIcon';
 import { SegmentedControl } from '@keystone-ui/segmented-control';
 // @ts-ignore
 import dumbPasswords from 'dumb-passwords';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import {
   CardValueComponent,
   CellComponent,
@@ -26,34 +28,34 @@ function validate(value: Value, validation: Validation, fieldLabel: string): str
     return undefined;
   }
   if (value.kind === 'initial' && validation?.isRequired) {
-    return `${fieldLabel} is required`;
+    return `${fieldLabel} ${i18next.t('is required')}`;
   }
   if (value.kind === 'editing' && value.confirm !== value.value) {
-    return `The passwords do not match`;
+    return i18next.t(`The passwords do not match`);
   }
   if (value.kind === 'editing') {
     const val = value.value;
     if (val.length < validation.length.min) {
       if (validation.length.min === 1) {
-        return `${fieldLabel} must not be empty`;
+        return `${fieldLabel} ${i18next.t('must not be empty')}`;
       }
-      return `${fieldLabel} must be at least ${validation.length.min} characters long`;
+      return `${fieldLabel} ${i18next.t('must be at least {{val}} characters long', { val: validation.length.min })}`;
     }
     if (validation.length.max !== null && val.length > validation.length.max) {
-      return `${fieldLabel} must be no longer than ${validation.length.min} characters`;
+      return `${fieldLabel} ${i18next.t('must be no longer than {{val}} characters', { val: validation.length.min })}`;
     }
     if (validation.match && !validation.match.regex.test(val)) {
-      return validation.match.explanation;
+      return i18next.t(validation.match.explanation || '');
     }
     if (validation.rejectCommon && dumbPasswords.check(val)) {
-      return `${fieldLabel} is too common and is not allowed`;
+      return `${fieldLabel} ${i18next.t('is too common and is not allowed')}`;
     }
   }
   return undefined;
 }
 
 function isSetText(isSet: null | undefined | boolean) {
-  return isSet == null ? 'Access Denied' : isSet ? 'Is set' : 'Is not set';
+  return isSet == null ? i18next.t('Access Denied') : isSet ? i18next.t('Is set') : i18next.t('Is not set');
 }
 
 export const Field = ({
@@ -66,9 +68,11 @@ export const Field = ({
   const [showInputValue, setShowInputValue] = useState(false);
   const [touchedFirstInput, setTouchedFirstInput] = useState(false);
   const [touchedSecondInput, setTouchedSecondInput] = useState(false);
+  const { t } = useTranslation();
+
   const shouldShowValidation = forceValidation || (touchedFirstInput && touchedSecondInput);
   const validationMessage = shouldShowValidation
-    ? validate(value, field.validation, field.label)
+    ? validate(value, field.validation, t(field.label))
     : undefined;
   const validation = validationMessage && (
     <Text color="red600" size="small">
@@ -78,7 +82,7 @@ export const Field = ({
   const inputType = showInputValue ? 'text' : 'password';
   return (
     <FieldContainer as="fieldset">
-      <FieldLabel as="legend">{field.label}</FieldLabel>
+      <FieldLabel as="legend">{t(field.label)}</FieldLabel>
       {onChange === undefined ? (
         isSetText(value.isSet)
       ) : value.kind === 'initial' ? (
@@ -94,7 +98,7 @@ export const Field = ({
               });
             }}
           >
-            {value.isSet ? 'Change Password' : 'Set Password'}
+            {value.isSet ? t('Change Password') : t('Set Password')}
           </Button>
           {validation}
         </Fragment>
@@ -102,7 +106,7 @@ export const Field = ({
         <Stack gap="small">
           <div css={{ display: 'flex' }}>
             <VisuallyHidden as="label" htmlFor={`${field.path}-new-password`}>
-              New Password
+              {t('New Password')}
             </VisuallyHidden>
             <TextInput
               id={`${field.path}-new-password`}
@@ -110,7 +114,7 @@ export const Field = ({
               invalid={validationMessage !== undefined}
               type={inputType}
               value={value.value}
-              placeholder="New Password"
+              placeholder={t('New Password')}
               onChange={event => {
                 onChange({
                   ...value,
@@ -123,14 +127,14 @@ export const Field = ({
             />
             <Spacer />
             <VisuallyHidden as="label" htmlFor={`${field.path}-confirm-password`}>
-              Confirm Password
+              {t('Confirm Password')}
             </VisuallyHidden>
             <TextInput
               id={`${field.path}-confirm-password`}
               invalid={validationMessage !== undefined}
               type={inputType}
               value={value.confirm}
-              placeholder="Confirm Password"
+              placeholder={t('Confirm Password')}
               onChange={event => {
                 onChange({
                   ...value,
@@ -147,7 +151,7 @@ export const Field = ({
                 setShowInputValue(!showInputValue);
               }}
             >
-              <VisuallyHidden>{showInputValue ? 'Hide Text' : 'Show Text'}</VisuallyHidden>
+              <VisuallyHidden>{showInputValue ? t('Hide Text') : t('Show Text')}</VisuallyHidden>
               {showInputValue ? <EyeOffIcon /> : <EyeIcon />}
             </Button>
             <Spacer />
@@ -159,7 +163,7 @@ export const Field = ({
                 });
               }}
             >
-              <VisuallyHidden>Cancel</VisuallyHidden>
+              <VisuallyHidden>{t('Cancel')}</VisuallyHidden>
               <XIcon />
             </Button>
           </div>
@@ -175,9 +179,10 @@ export const Cell: CellComponent = ({ item, field }) => {
 };
 
 export const CardValue: CardValueComponent = ({ item, field }) => {
+  const { t } = useTranslation();
   return (
     <FieldContainer>
-      <FieldLabel>{field.label}</FieldLabel>
+      <FieldLabel>{t(field.label)}</FieldLabel>
       {isSetText(item[field.path]?.isSet)}
     </FieldContainer>
   );
@@ -251,7 +256,7 @@ export const controller = (
       kind: 'initial',
       isSet: false,
     },
-    validate: state => validate(state, validation, config.label) === undefined,
+    validate: state => validate(state, validation, i18next.t(config.label)) === undefined,
     deserialize: data => ({ kind: 'initial', isSet: data[config.path]?.isSet ?? null }),
     serialize: value => {
       if (value.kind === 'initial') return {};
@@ -268,7 +273,7 @@ export const controller = (
                   onChange={value => {
                     props.onChange(!!value);
                   }}
-                  segments={['Is Not Set', 'Is Set']}
+                  segments={[i18next.t('Is Not Set'), i18next.t('Is Set')]}
                 />
               );
             },
@@ -276,11 +281,11 @@ export const controller = (
               return { [config.path]: { isSet: value } };
             },
             Label({ value }) {
-              return value ? 'is set' : 'is not set';
+              return value ? i18next.t('is set') : i18next.t('is not set');
             },
             types: {
               is_set: {
-                label: 'Is Set',
+                label: i18next.t('Is Set'),
                 initialValue: true,
               },
             },

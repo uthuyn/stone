@@ -2,6 +2,8 @@
 /** @jsx jsx */
 import { jsx, Stack } from '@keystone-ui/core';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import { FieldMeta } from '../../types';
 import { Value } from '.';
 
@@ -37,6 +39,7 @@ const RenderField = memo(function RenderField({
 });
 
 type FieldsProps = {
+  listKey: string,
   fields: Record<string, FieldMeta>;
   value: Value;
   forceValidation: boolean;
@@ -46,6 +49,7 @@ type FieldsProps = {
 };
 
 export function Fields({
+  listKey,
   fields,
   value,
   fieldModes,
@@ -53,6 +57,8 @@ export function Fields({
   invalidFields,
   onChange,
 }: FieldsProps) {
+  const { t } = useTranslation();
+
   const renderedFields = Object.keys(fields)
     .filter(fieldPath => fieldModes === null || fieldModes[fieldPath] !== 'hidden')
     .map((fieldPath, index) => {
@@ -63,7 +69,7 @@ export function Fields({
       if (val.kind === 'error') {
         return (
           <div>
-            {field.label}: <span css={{ color: 'red' }}>{val.errors[0].message}</span>
+            {t(`${listKey}.${field.label}`)}: <span css={{ color: 'red' }}>{t(val.errors[0].message)}</span>
           </div>
         );
       }
@@ -81,7 +87,7 @@ export function Fields({
   return (
     <Stack gap="xlarge">
       {renderedFields}
-      {renderedFields.length === 0 && 'There are no fields that you can read or edit'}
+      {renderedFields.length === 0 && t('There are no fields that you can read or edit')}
     </Stack>
   );
 }

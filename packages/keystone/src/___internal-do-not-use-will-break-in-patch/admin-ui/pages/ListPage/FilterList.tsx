@@ -5,6 +5,8 @@ import { Button } from '@keystone-ui/button';
 import { usePopover, PopoverDialog } from '@keystone-ui/popover';
 import { FormEvent, Fragment, useState } from 'react';
 import { Pill } from '@keystone-ui/pill';
+import { useTranslation } from 'react-i18next';
+
 import { FieldMeta, ListMeta } from '../../../../types';
 import { useRouter } from '../../../../admin-ui/router';
 import { Filter } from './useFilters';
@@ -14,14 +16,16 @@ export function FilterList({ filters, list }: { filters: Filter[]; list: ListMet
     <Inline gap="small">
       {filters.map(filter => {
         const field = list.fields[filter.field];
-        return <FilterPill key={`${filter.field}_${filter.type}`} field={field} filter={filter} />;
+        return <FilterPill key={`${filter.field}_${filter.type}`} field={field} filter={filter} list={list} />;
       })}
     </Inline>
   );
 }
 
-function FilterPill({ filter, field }: { filter: Filter; field: FieldMeta }) {
+function FilterPill({ filter, field, list }: { filter: Filter; field: FieldMeta, list: ListMeta }) {
   const router = useRouter();
+  const { t } = useTranslation();
+
   const { isOpen, setOpen, trigger, dialog, arrow } = usePopover({
     placement: 'bottom',
     modifiers: [{ name: 'offset', options: { offset: [0, 8] } }],
@@ -49,9 +53,9 @@ function FilterPill({ filter, field }: { filter: Filter; field: FieldMeta }) {
           router.push({ pathname: router.pathname, query: queryToKeep });
         }}
       >
-        {field.label}{' '}
+        [{t(`${list.key}.${field.label}`)}]{' '}
         <Label
-          label={field.controller.filter!.types[filter.type].label}
+          label={t(field.controller.filter!.types[filter.type].label)}
           type={filter.type}
           value={filter.value}
         />
@@ -88,6 +92,8 @@ function EditDialog({
 }) {
   const Filter = field.controller.filter!.Filter;
   const router = useRouter();
+  const { t } = useTranslation();
+
   const [value, setValue] = useState(filter.value);
   return (
     <Stack
@@ -107,8 +113,8 @@ function EditDialog({
     >
       <Filter type={filter.type} value={value} onChange={setValue} />
       <div css={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button type="submit">Save</Button>
+        <Button onClick={onClose}>{t('Cancel')}</Button>
+        <Button type="submit">{t('Save')}</Button>
       </div>
     </Stack>
   );

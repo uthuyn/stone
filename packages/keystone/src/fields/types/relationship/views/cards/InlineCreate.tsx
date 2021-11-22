@@ -110,6 +110,7 @@ export function InlineCreate({
         <GraphQLErrorNotice networkError={error?.networkError} errors={error?.graphQLErrors} />
       )}
       <Fields
+        listKey={list.key}
         fieldModes={null}
         fields={fields}
         forceValidation={forceValidation}

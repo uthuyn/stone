@@ -10,6 +10,7 @@ import { ArrowRightCircleIcon } from '@keystone-ui/icons/icons/ArrowRightCircleI
 import { LoadingDots } from '@keystone-ui/loading';
 import { AlertDialog, DrawerController } from '@keystone-ui/modals';
 import { useToasts } from '@keystone-ui/toast';
+import { useTranslation } from 'react-i18next';
 
 import { ListMeta } from '../../../../types';
 import {
@@ -130,7 +131,7 @@ export const getListPage = (props: ListPageProps) => () => <ListPage {...props} 
 
 const ListPage = ({ listKey }: ListPageProps) => {
   const list = useList(listKey);
-
+  const { t } = useTranslation();
   const { query } = useRouter();
 
   const { resetToDefaults } = useQueryParamsFromLocalStorage(listKey);
@@ -245,7 +246,7 @@ const ListPage = ({ listKey }: ListPageProps) => {
     <PageContainer header={<ListPageHeader listKey={listKey} />}>
       {metaQuery.error ? (
         // TODO: Show errors nicely and with information
-        'Error...'
+        t('Error...')
       ) : data && metaQuery.data ? (
         <Fragment>
           <Stack across gap="medium" align="center" marginTop="xlarge">
@@ -256,7 +257,7 @@ const ListPage = ({ listKey }: ListPageProps) => {
             {filters.filters.length ? <FilterList filters={filters.filters} list={list} /> : null}
             {Boolean(Object.keys(query).length) && (
               <Button size="small" onClick={resetToDefaults}>
-                Reset to defaults
+                {t('Reset to defaults')}
               </Button>
             )}
           </Stack>
@@ -270,7 +271,7 @@ const ListPage = ({ listKey }: ListPageProps) => {
                     return (
                       <Fragment>
                         <span css={{ marginRight: theme.spacing.small }}>
-                          Selected {selectedItemsCount} of {data.items.length}
+                          {t('Selected')} {selectedItemsCount} {t('item of')} {data.items.length}
                         </span>
                         {!(metaQuery.data?.keystone.adminMeta.list?.hideDelete ?? true) && (
                           <DeleteManyButton
@@ -291,8 +292,8 @@ const ListPage = ({ listKey }: ListPageProps) => {
                         singular={list.singular}
                         total={data.count}
                       />
-                      , sorted by <SortSelection list={list} orderableFields={orderableFields} />
-                      with{' '}
+                      , {t('sorted by')} <SortSelection list={list} orderableFields={orderableFields} />
+                      {t('with')}{' '}
                       <FieldSelection
                         list={list}
                         fieldModesByFieldPath={listViewFieldModesByField}
@@ -323,12 +324,12 @@ const ListPage = ({ listKey }: ListPageProps) => {
               />
             </Fragment>
           ) : (
-            <ResultsSummaryContainer>No {list.plural} found.</ResultsSummaryContainer>
+            <ResultsSummaryContainer>{t('No row')} {t(list.singular)} {t('found')}.</ResultsSummaryContainer>
           )}
         </Fragment>
       ) : (
         <Center css={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
-          <LoadingDots label="Loading item data" size="large" tone="passive" />
+          <LoadingDots label={t("Loading item data")} size="large" tone="passive" />
         </Center>
       )}
     </PageContainer>
@@ -339,6 +340,7 @@ const CreateButton = ({ listKey }: { listKey: string }) => {
   const list = useList(listKey);
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <Fragment>
@@ -351,7 +353,7 @@ const CreateButton = ({ listKey }: { listKey: string }) => {
         size="small"
         weight="bold"
       >
-        Create {list.singular}
+        {t('Create')} {t(list.singular)}
       </Button>
       <DrawerController isOpen={isCreateModalOpen}>
         <CreateItemDrawer
@@ -370,6 +372,7 @@ const CreateButton = ({ listKey }: { listKey: string }) => {
 
 const ListPageHeader = ({ listKey }: { listKey: string }) => {
   const list = useList(listKey);
+  const { t } = useTranslation();
   return (
     <Fragment>
       <div
@@ -380,7 +383,7 @@ const ListPageHeader = ({ listKey }: { listKey: string }) => {
           justifyContent: 'space-between',
         }}
       >
-        <Heading type="h3">{list.label}</Heading>
+        <Heading type="h3">{t(list.label)}</Heading>
         {/* <CreateButton listKey={listKey} /> */}
       </div>
     </Fragment>
@@ -431,6 +434,8 @@ function DeleteManyButton({
   list: ListMeta;
   refetch: () => void;
 }) {
+  const { t } = useTranslation();
+
   const [deleteItems, deleteItemsState] = useMutation(
     useMemo(
       () =>
@@ -457,16 +462,16 @@ function DeleteManyButton({
           setIsOpen(true);
         }}
       >
-        Delete
+        {t('Delete')}
       </Button>
       <AlertDialog
         // TODO: change the copy in the title and body of the modal
         isOpen={isOpen}
-        title="Delete Confirmation"
+        title={t('Delete Confirmation')}
         tone="negative"
         actions={{
           confirm: {
-            label: 'Delete',
+            label: t('Delete'),
             action: async () => {
               const { data, errors } = await deleteItems({
                 variables: { where: [...selectedItems].map(id => ({ id })) },
@@ -512,13 +517,13 @@ function DeleteManyButton({
                 // Reduce error messages down to unique instances, and append to the toast as a message.
                 toasts.addToast({
                   tone: 'negative',
-                  title: `Failed to delete ${unsuccessfulItems} of ${
+                  title: `${t('Failed to delete')} ${unsuccessfulItems} ${t('item of')} ${
                     data[list.gqlNames.deleteManyMutationName].length
-                  } ${list.plural}`,
+                  } ${t(list.plural)}`,
                   message: errors
                     .reduce((acc, error) => {
                       if (acc.indexOf(error.message) < 0) {
-                        acc.push(error.message);
+                        acc.push(t(error.message));
                       }
                       return acc;
                     }, [] as string[])
@@ -529,10 +534,10 @@ function DeleteManyButton({
               if (successfulItems) {
                 toasts.addToast({
                   tone: 'positive',
-                  title: `Deleted ${successfulItems} of ${
+                  title: `${t('Deleted')} ${successfulItems} ${t('item of')} ${
                     data[list.gqlNames.deleteManyMutationName].length
-                  } ${list.plural} successfully`,
-                  message: successMessage,
+                  } ${t(list.plural)} ${t('successfully')}`,
+                  message: t(successMessage),
                 });
               }
 
@@ -540,15 +545,15 @@ function DeleteManyButton({
             },
           },
           cancel: {
-            label: 'Cancel',
+            label: t('Cancel'),
             action: () => {
               setIsOpen(false);
             },
           },
         }}
       >
-        Are you sure you want to delete {selectedItems.size}{' '}
-        {selectedItems.size === 1 ? list.singular : list.plural}?
+        {t('Are you sure you want to delete')} {selectedItems.size}{' '}
+        {selectedItems.size === 1 ? t(list.singular) : t(list.plural)}?
       </AlertDialog>
     </Fragment>
   );
@@ -579,6 +584,8 @@ function ListTable({
 }) {
   const list = useList(listKey);
   const { query } = useRouter();
+  const { t } = useTranslation();
+
   const shouldShowLinkIcon =
     !list.fields[selectedFields.keys().next().value].views.Cell.supportsLinkTo;
   return (
@@ -621,7 +628,7 @@ function ListTable({
           </TableHeaderCell>
           {shouldShowLinkIcon && <TableHeaderCell />}
           {[...selectedFields].map(path => {
-            const label = list.fields[path].label;
+            const label = t(`${list.key}.${list.fields[path].label}`);
             if (!orderableFields.has(path)) {
               return <TableHeaderCell key={path}>{label}</TableHeaderCell>;
             }
@@ -715,7 +722,7 @@ function ListTable({
                   )) {
                     const fieldGetter = itemGetter.get(graphqlField);
                     if (fieldGetter.errors) {
-                      const errorMessage = fieldGetter.errors[0].message;
+                      const errorMessage = t(fieldGetter.errors[0].message);
                       return (
                         <TableBodyCell css={{ color: 'red' }} key={path}>
                           {i === 0 && Cell.supportsLinkTo ? (

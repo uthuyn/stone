@@ -4,6 +4,7 @@
 import { jsx } from '@keystone-ui/core';
 import { Button } from '@keystone-ui/button';
 import { ReactNode, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useMutation, gql } from '../apollo';
 
@@ -20,10 +21,11 @@ const SignoutButton = ({ children }: { children?: ReactNode }) => {
       window.location.reload();
     }
   }, [data]);
+  const { t } = useTranslation();
 
   return (
     <Button size="small" isLoading={loading} onClick={() => endSession()}>
-      {children || 'Sign out'}
+      {children || t('Sign out')}
     </Button>
   );
 };

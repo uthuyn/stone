@@ -6,6 +6,8 @@ import { AdminConfig, FieldViews } from '../../../../types';
 import { ErrorBoundary } from '../../../../admin-ui/components';
 import { KeystoneProvider } from '../../../../admin-ui/context';
 
+import '../../../../i18n';
+
 type AppConfig = {
   adminConfig: AdminConfig;
   adminMetaHash: string;

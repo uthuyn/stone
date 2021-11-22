@@ -26,6 +26,8 @@ import { Notice } from '@keystone-ui/notice';
 import { useToasts } from '@keystone-ui/toast';
 import { Tooltip } from '@keystone-ui/tooltip';
 import { FieldLabel, TextInput } from '@keystone-ui/fields';
+import { useTranslation } from 'react-i18next';
+
 import { ListMeta } from '../../../../types';
 import {
   DataGetter,
@@ -73,6 +75,7 @@ function ItemForm({
   fieldModes: Record<string, 'edit' | 'read' | 'hidden'>;
   showDelete: boolean;
 }) {
+  const { t } = useTranslation();
   const list = useList(listKey);
 
   const [update, { loading, error, data }] = useMutation(
@@ -128,21 +131,21 @@ function ItemForm({
         const error = errors?.find(x => x.path?.length === 1);
         if (error) {
           toasts.addToast({
-            title: 'Failed to update item',
+            title: t('Failed to update item'),
             tone: 'negative',
-            message: error.message,
+            message: t(error.message),
           });
         } else {
           toasts.addToast({
             // title: data.item[list.labelField] || data.item.id,
             tone: 'positive',
-            title: 'Saved successfully',
+            title: t('Saved successfully'),
             // message: 'Saved successfully',
           });
         }
       })
       .catch(err => {
-        toasts.addToast({ title: 'Failed to update item', tone: 'negative', message: err.message });
+        toasts.addToast({ title: t('Failed to update item'), tone: 'negative', message: t(err.message) });
       });
   });
   const labelFieldValue = state.item.data?.[list.labelField];
@@ -156,6 +159,7 @@ function ItemForm({
         errors={error?.graphQLErrors.filter(x => x.path?.length === 1)}
       />
       <Fields
+        listKey={list.key}
         fieldModes={fieldModes}
         fields={list.fields}
         forceValidation={forceValidation}
@@ -204,6 +208,8 @@ function DeleteButton({
   list: ListMeta;
 }) {
   const toasts = useToasts();
+  const { t } = useTranslation();
+
   const [deleteItem, { loading }] = useMutation(
     gql`mutation ($id: ID!) {
       ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
@@ -223,44 +229,44 @@ function DeleteButton({
           setIsOpen(true);
         }}
       >
-        Delete
+        {t('Delete')}
       </Button>
       <AlertDialog
         // TODO: change the copy in the title and body of the modal
-        title="Delete Confirmation"
+        title={t("Delete Confirmation")}
         isOpen={isOpen}
         tone="negative"
         actions={{
           confirm: {
-            label: 'Delete',
+            label: t('Delete'),
             action: async () => {
               try {
                 await deleteItem();
               } catch (err: any) {
                 return toasts.addToast({
-                  title: `Failed to delete ${list.singular} item: ${itemLabel}`,
-                  message: err.message,
+                  title: `${t('Failed to delete')} ${t(list.singular)}: ${itemLabel}`,
+                  message: t(err.message),
                   tone: 'negative',
                 });
               }
               router.push(`/${list.path}`);
               return toasts.addToast({
                 title: itemLabel,
-                message: `Deleted ${list.singular} item successfully`,
+                message: `${t('Deleted')} ${t(list.singular)} ${t('successfully')}`,
                 tone: 'positive',
               });
             },
             loading,
           },
           cancel: {
-            label: 'Cancel',
+            label: t('Cancel'),
             action: () => {
               setIsOpen(false);
             },
           },
         }}
       >
-        Are you sure you want to delete <strong>{itemLabel}</strong>?
+        {t('Are you sure you want to delete')} <strong>{itemLabel}</strong>?
       </AlertDialog>
     </Fragment>
   );
@@ -273,6 +279,7 @@ const ItemPage = ({ listKey }: ItemPageProps) => {
   const { id } = router.query;
   const list = useList(listKey);
   const { palette, spacing, typography } = useTheme();
+  const { t } = useTranslation();
 
   const { query, selectedFields } = useMemo(() => {
     let selectedFields = Object.entries(list.fields)
@@ -366,7 +373,7 @@ const ItemPage = ({ listKey }: ItemPageProps) => {
           >
             <Heading type="h3">
               <Link href={`/${list.path}`} passHref>
-                <a css={{ textDecoration: 'none' }}>{list.label}</a>
+                <a css={{ textDecoration: 'none' }}>{t(list.label)}</a>
               </Link>
             </Heading>
             <div
@@ -391,7 +398,7 @@ const ItemPage = ({ listKey }: ItemPageProps) => {
               }}
             >
               {loading
-                ? 'Loading...'
+                ? t('Loading...')
                 : (data && data.item && (data.item[list.labelField] || data.item.id)) || id}
             </Heading>
           </div>
@@ -405,7 +412,7 @@ const ItemPage = ({ listKey }: ItemPageProps) => {
         </Center>
       ) : metaQueryErrors ? (
         <Box marginY="xlarge">
-          <Notice tone="negative">{metaQueryErrors[0].message}</Notice>
+          <Notice tone="negative">{t(metaQueryErrors[0].message)}</Notice>
         </Box>
       ) : (
         <Fragment>
@@ -419,7 +426,7 @@ const ItemPage = ({ listKey }: ItemPageProps) => {
             />
 
             <StickySidebar>
-              <FieldLabel>Item ID</FieldLabel>
+              <FieldLabel>{t("Item ID")}</FieldLabel>
               <div
                 css={{
                   display: 'flex',
@@ -435,11 +442,11 @@ const ItemPage = ({ listKey }: ItemPageProps) => {
                   readOnly
                   value={data.item.id}
                 />
-                <Tooltip content="Copy ID">
+                <Tooltip content={t("Copy ID")}>
                   {props => (
                     <Button
                       {...props}
-                      aria-label="Copy ID"
+                      aria-label={t("Copy ID")}
                       onClick={() => {
                         copyToClipboard(data.item.id);
                       }}
@@ -460,6 +467,7 @@ const ItemPage = ({ listKey }: ItemPageProps) => {
 const CreateButton = ({ id, listKey }: { id: string; listKey: string }) => {
   const list = useList(listKey);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [createModalState, setModalState] = useState<
     { state: 'closed' } | { state: 'open'; id: string }
@@ -481,7 +489,7 @@ const CreateButton = ({ id, listKey }: { id: string; listKey: string }) => {
         tone="positive"
         size="small"
       >
-        Create New {list.singular}
+        {t('Create')} {t(list.singular)}
       </Button>
 
       <DrawerController isOpen={createModalState.state === 'open'}>
@@ -517,6 +525,8 @@ const Toolbar = memo(function Toolbar({
   deleteButton?: ReactElement;
 }) {
   const { colors, spacing } = useTheme();
+  const { t } = useTranslation();
+
   return (
     <div
       css={{
@@ -540,15 +550,15 @@ const Toolbar = memo(function Toolbar({
           tone="active"
           onClick={onSave}
         >
-          Save changes
+          {t('Save changes')}
         </Button>
         {hasChangedFields ? (
           <Button weight="none" onClick={onReset}>
-            Reset changes
+            {t('Reset changes')}
           </Button>
         ) : (
           <Text weight="medium" paddingX="large" color="neutral600">
-            No changes
+            {t('No changes')}
           </Text>
         )}
       </Stack>

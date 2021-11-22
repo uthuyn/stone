@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { jsx, Stack, useTheme } from '@keystone-ui/core';
 import { Select } from '@keystone-ui/fields';
 import { ChevronRightIcon, ChevronLeftIcon } from '@keystone-ui/icons';
+import { useTranslation } from 'react-i18next';
+
 import { Link, useRouter } from '../router';
 
 interface PaginationProps {
@@ -13,17 +15,18 @@ interface PaginationProps {
   list: Record<string, any>;
 }
 
-const getPaginationStats = ({ list, pageSize, currentPage, total }: PaginationProps) => {
+const getPaginationStats = ({ list, pageSize, currentPage, total}: PaginationProps, t: any) => {
+
   let stats = '';
   if (total > pageSize) {
     const start = pageSize * (currentPage - 1) + 1;
     const end = Math.min(start + pageSize - 1, total);
-    stats = `${start} - ${end} of ${total} ${list.plural}`;
+    stats = `${start} - ${end} ${t('of')} ${total} ${t(list.singular)}`;
   } else {
     if (total > 1 && list.plural) {
-      stats = `${total} ${list.plural}`;
+      stats = `${total} ${t(list.plural)}`;
     } else if (total === 1 && list.singular) {
-      stats = `${total} ${list.singular}`;
+      stats = `${total} ${t(list.singular)}`;
     }
   }
   return { stats };
@@ -31,7 +34,9 @@ const getPaginationStats = ({ list, pageSize, currentPage, total }: PaginationPr
 
 export function Pagination({ currentPage, total, pageSize, list }: PaginationProps) {
   const { query, pathname, push } = useRouter();
-  const { stats } = getPaginationStats({ list, currentPage, total, pageSize });
+  const { t } = useTranslation();
+
+  const { stats } = getPaginationStats({ list, currentPage, total, pageSize}, t);
   const { opacity } = useTheme();
 
   const nextPage = currentPage + 1;
@@ -96,7 +101,7 @@ export function Pagination({ currentPage, total, pageSize, list }: PaginationPro
       }}
     >
       <Stack across gap="xxlarge" align="center">
-        <span>{`${list.plural} per page: ${pageSize}`}</span>
+        <span>{`${t(list.singular)} ${t('per page')}: ${pageSize}`}</span>
         <span>
           <strong>{stats}</strong>
         </span>
@@ -117,7 +122,7 @@ export function Pagination({ currentPage, total, pageSize, list }: PaginationPro
           menuPortalTarget={document.body}
           onChange={onChange}
         />
-        <span>of {limit}</span>
+        <span>{t('of')} {limit}</span>
         <Link
           aria-label="Previous page"
           css={{
@@ -162,20 +167,22 @@ export function PaginationLabel({
   singular: string;
   total: number;
 }) {
+  const { t } = useTranslation();
+
   const { stats } = getPaginationStats({
     list: { plural, singular },
     currentPage,
     total,
     pageSize,
-  });
+  }, t);
 
   if (!total) {
-    return <span>No {plural}</span>;
+    return <span>{t('No row')} {t(singular)}</span>;
   }
 
   return (
     <span>
-      Showing <strong>{stats}</strong>
+      {t('Showing')} <strong>{stats}</strong>
     </span>
   );
 }

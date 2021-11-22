@@ -123,6 +123,7 @@ export function InlineEdit({
         />
       )}
       <Fields
+        listKey={list.key}
         fieldModes={null}
         fields={fieldsObj}
         forceValidation={forceValidation}

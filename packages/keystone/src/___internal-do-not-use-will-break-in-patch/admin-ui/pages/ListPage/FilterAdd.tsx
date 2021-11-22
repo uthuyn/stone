@@ -10,6 +10,7 @@ import { ChevronRightIcon } from '@keystone-ui/icons/icons/ChevronRightIcon';
 import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon';
 import { OptionPrimitive, Options } from '@keystone-ui/options';
 import { PopoverDialog, usePopover } from '@keystone-ui/popover';
+import { useTranslation } from 'react-i18next';
 
 import { FieldMeta, JSONValue } from '../../../../types';
 import { useList } from '../../../../admin-ui/context';
@@ -52,6 +53,7 @@ export function FilterAdd({
     placement: 'bottom',
     modifiers: [{ name: 'offset', options: { offset: [0, 8] } }],
   });
+  const { t } = useTranslation();
 
   return (
     <Fragment>
@@ -63,7 +65,7 @@ export function FilterAdd({
         onClick={() => setOpen(true)}
       >
         <Box as="span" marginRight="xsmall">
-          Filter List
+          {t('Filter List')}
         </Box>
         <ChevronDownIcon size="small" />
       </Button>
@@ -99,6 +101,7 @@ function FilterAddPopoverContent({
 }) {
   const list = useList(listKey);
   const router = useRouter();
+  const { t } = useTranslation();
   const fieldsWithFilters = useMemo(() => {
     const fieldsWithFilters: Record<
       string,
@@ -165,7 +168,7 @@ function FilterAddPopoverContent({
               position: 'absolute',
             }}
           >
-            <VisuallyHidden>Back</VisuallyHidden>
+            <VisuallyHidden>{t('Back')}</VisuallyHidden>
             <ChevronLeftIcon size="smallish" />
           </button>
         )}
@@ -173,10 +176,10 @@ function FilterAddPopoverContent({
           {(() => {
             switch (state.kind) {
               case 'selecting-field': {
-                return 'Filter';
+                return t('Filter');
               }
               case 'filter-value': {
-                return list.fields[state.fieldPath].label;
+                return t(`${list.key}.${list.fields[state.fieldPath].label}`);
               }
             }
           })()}
@@ -198,9 +201,10 @@ function FilterAddPopoverContent({
             });
           }}
           options={Object.keys(filtersByFieldThenType).map(fieldPath => ({
-            label: fieldsWithFilters[fieldPath].label,
+            label: t(`${list.key}.${fieldsWithFilters[fieldPath].label}`) || fieldsWithFilters[fieldPath].label,
             value: fieldPath,
           }))}
+          placeholder={t('Select...')}
         />
       )}
       {state.kind === 'filter-value' && (
@@ -208,7 +212,7 @@ function FilterAddPopoverContent({
           width="full"
           value={{
             value: state.filterType,
-            label: filtersByFieldThenType[state.fieldPath][state.filterType],
+            label: t(filtersByFieldThenType[state.fieldPath][state.filterType]),
           }}
           onChange={newVal => {
             if (newVal) {
@@ -223,9 +227,10 @@ function FilterAddPopoverContent({
             }
           }}
           options={Object.keys(filtersByFieldThenType[state.fieldPath]).map(filterType => ({
-            label: filtersByFieldThenType[state.fieldPath][filterType],
+            label: t(filtersByFieldThenType[state.fieldPath][filterType]) || filtersByFieldThenType[state.fieldPath][filterType],
             value: filterType,
           }))}
+          placeholder={t('Select...')}
         />
       )}
       {state.kind == 'filter-value' &&
@@ -246,8 +251,8 @@ function FilterAddPopoverContent({
         })()}
       {state.kind == 'filter-value' && (
         <div css={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit">Apply</Button>
+          <Button onClick={onClose}>{t('Cancel')}</Button>
+          <Button type="submit">{t('Apply')}</Button>
         </div>
       )}
     </Stack>

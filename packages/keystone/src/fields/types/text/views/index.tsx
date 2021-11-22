@@ -3,6 +3,8 @@
 import { jsx, Stack, useTheme } from '@keystone-ui/core';
 import { Checkbox, FieldContainer, FieldLabel, TextArea, TextInput } from '@keystone-ui/fields';
 import { useState } from 'react';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import {
   CardValueComponent,
   CellComponent,
@@ -21,10 +23,11 @@ export const Field = ({
 }: FieldProps<typeof controller>) => {
   const { typography, fields } = useTheme();
   const [shouldShowErrors, setShouldShowErrors] = useState(false);
-  const validationMessages = validate(value, field.validation, field.label);
+  const { t } = useTranslation();
+  const validationMessages = validate(value, field.validation, t(`${field.listKey}.${field.label}`));
   return (
     <FieldContainer>
-      <FieldLabel>{field.label}</FieldLabel>
+      <FieldLabel>{t(`${field.listKey}.${field.label}`)}</FieldLabel>
       {onChange ? (
         <Stack gap="small">
           {field.displayMode === 'textarea' ? (
@@ -106,9 +109,10 @@ export const Cell: CellComponent = ({ item, field, linkTo }) => {
 Cell.supportsLinkTo = true;
 
 export const CardValue: CardValueComponent = ({ item, field }) => {
+  const { t } = useTranslation();
   return (
     <FieldContainer>
-      <FieldLabel>{field.label}</FieldLabel>
+      <FieldLabel>{t(`${field.listKey}.${field.label}`)}</FieldLabel>
       {item[field.path]}
     </FieldContainer>
   );
@@ -139,7 +143,7 @@ function validate(value: TextValue, validation: Validation, fieldLabel: string):
 
   if (value.inner.kind === 'null') {
     if (validation.isRequired) {
-      return [`${fieldLabel} is required`];
+      return [`${fieldLabel} ${i18next.t('is required')}`];
     }
     return [];
   }
@@ -149,17 +153,17 @@ function validate(value: TextValue, validation: Validation, fieldLabel: string):
   let messages: string[] = [];
   if (validation.length.min !== null && val.length < validation.length.min) {
     if (validation.length.min === 1) {
-      messages.push(`${fieldLabel} must not be empty`);
+      messages.push(`${fieldLabel} ${i18next.t('must not be empty')}`);
     } else {
-      messages.push(`${fieldLabel} must be at least ${validation.length.min} characters long`);
+      messages.push(`${fieldLabel} ${i18next.t('must be at least {{val}} characters long', { val: validation.length.min })}`);
     }
   }
   if (validation.length.max !== null && val.length > validation.length.max) {
-    messages.push(`${fieldLabel} must be no longer than ${validation.length.min} characters`);
+    messages.push(`${fieldLabel} ${i18next.t('must be no longer than {{val}} characters', { val: validation.length.min })}`);
   }
   if (validation.match && !validation.match.regex.test(val)) {
     messages.push(
-      validation.match.explanation || `${fieldLabel} must match ${validation.match.regex}`
+      i18next.t(validation.match.explanation || '') || `${fieldLabel} ${i18next.t('must match')} ${validation.match.regex}`
     );
   }
   return messages;
@@ -189,15 +193,16 @@ export const controller = (
     length: config.fieldMeta.validation.length,
     match: config.fieldMeta.validation.match
       ? {
-          regex: new RegExp(
-            config.fieldMeta.validation.match.regex.source,
-            config.fieldMeta.validation.match.regex.flags
-          ),
-          explanation: config.fieldMeta.validation.match.explanation,
-        }
+        regex: new RegExp(
+          config.fieldMeta.validation.match.regex.source,
+          config.fieldMeta.validation.match.regex.flags
+        ),
+        explanation: config.fieldMeta.validation.match.explanation,
+      }
       : null,
   };
   return {
+    listKey: config.listKey,
     path: config.path,
     label: config.label,
     graphqlSelection: config.path,
@@ -210,7 +215,7 @@ export const controller = (
     },
     serialize: value => ({ [config.path]: value.inner.kind === 'null' ? null : value.inner.value }),
     validation,
-    validate: val => validate(val, validation, config.label).length === 0,
+    validate: val => validate(val, validation, i18next.t(config.label)).length === 0,
     filter: {
       Filter(props) {
         return (
@@ -230,9 +235,9 @@ export const controller = (
           type === 'is_i' || type === 'not_i'
             ? 'equals'
             : type
-                .replace(/_i$/, '')
-                .replace('not_', '')
-                .replace(/_([a-z])/g, (_, char: string) => char.toUpperCase());
+              .replace(/_i$/, '')
+              .replace('not_', '')
+              .replace(/_([a-z])/g, (_, char: string) => char.toUpperCase());
         const filter = { [key]: value };
         return {
           [config.path]: {

@@ -7,6 +7,8 @@ import { Button } from '@keystone-ui/button';
 import { Inline, jsx, Stack, useTheme } from '@keystone-ui/core';
 import { FieldContainer, FieldLabel, FieldLegend } from '@keystone-ui/fields';
 import { DrawerController } from '@keystone-ui/modals';
+import { useTranslation } from 'react-i18next';
+
 import {
   CardValueComponent,
   CellComponent,
@@ -51,6 +53,8 @@ function LinkToRelatedItems({
       .map(({ id }: { id: string }) => id)
       .join(',')}"`;
   }
+  const { t } = useTranslation();
+
   const commonProps = {
     size: 'small',
     tone: 'active',
@@ -61,14 +65,14 @@ function LinkToRelatedItems({
     const query = constructQuery({ refFieldKey, value, itemId });
     return (
       <Button {...commonProps} as={Link} href={`/${list.path}?${query}`}>
-        View related {list.plural}
+        {t('View related {{val}}', { val: t(list.singular) })}
       </Button>
     );
   }
 
   return (
     <Button {...commonProps} as={Link} href={`/${list.path}/${value.value?.id}`}>
-      View {list.singular} details
+       {t('View {{val}} details', { val: t(list.singular) })}
     </Button>
   );
 }
@@ -124,11 +128,12 @@ export const Field = ({
   const foreignList = useList(field.refListKey);
   const localList = useList(field.listKey);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { t } = useTranslation();
 
   if (value.kind === 'cards-view') {
     return (
       <FieldContainer as="fieldset">
-        <FieldLegend>{field.label}</FieldLegend>
+        <FieldLegend>{t(`${field.listKey}.${field.label}`)}</FieldLegend>
         <Cards
           forceValidation={forceValidation}
           field={field as any}
@@ -145,7 +150,7 @@ export const Field = ({
   if (value.kind === 'count') {
     return (
       <Stack as="fieldset" gap="medium">
-        <FieldLegend>{field.label}</FieldLegend>
+        <FieldLegend>{t(`${field.listKey}.${field.label}`)}</FieldLegend>
         <div>
           {value.count === 1
             ? `There is 1 ${foreignList.singular} `
@@ -158,7 +163,7 @@ export const Field = ({
 
   return (
     <FieldContainer as="fieldset">
-      <FieldLabel as="legend">{field.label}</FieldLabel>
+      <FieldLabel as="legend">{t(`${field.listKey}.${field.label}`)}</FieldLabel>
       {onChange ? (
         <Fragment>
           <Stack gap="medium">
@@ -171,28 +176,29 @@ export const Field = ({
               state={
                 value.kind === 'many'
                   ? {
-                      kind: 'many',
-                      value: value.value,
-                      onChange(newItems) {
+                    kind: 'many',
+                    value: value.value,
+                    onChange(newItems) {
+                      onChange({
+                        ...value,
+                        value: newItems,
+                      });
+                    },
+                  }
+                  : {
+                    kind: 'one',
+                    value: value.value,
+                    onChange(newVal) {
+                      if (value.kind === 'one') {
                         onChange({
                           ...value,
-                          value: newItems,
+                          value: newVal,
                         });
-                      },
-                    }
-                  : {
-                      kind: 'one',
-                      value: value.value,
-                      onChange(newVal) {
-                        if (value.kind === 'one') {
-                          onChange({
-                            ...value,
-                            value: newVal,
-                          });
-                        }
-                      },
-                    }
+                      }
+                    },
+                  }
               }
+              placeholder={t('Select...')}
             />
             <Stack across gap="small">
               {!field.hideCreate && (
@@ -203,7 +209,7 @@ export const Field = ({
                     setIsDrawerOpen(true);
                   }}
                 >
-                  Create related {foreignList.singular}
+                  {t('Create related {{val}}', { val: t(foreignList.singular) })}
                 </Button>
               )}
               {keystone.authenticatedItem.state === 'authenticated' &&
@@ -238,13 +244,13 @@ export const Field = ({
               {!!(value.kind === 'many'
                 ? value.value.length
                 : value.kind === 'one' && value.value) && (
-                <LinkToRelatedItems
-                  itemId={value.id}
-                  refFieldKey={field.refFieldKey}
-                  list={foreignList}
-                  value={value}
-                />
-              )}
+                  <LinkToRelatedItems
+                    itemId={value.id}
+                    refFieldKey={field.refFieldKey}
+                    list={foreignList}
+                    value={value}
+                  />
+                )}
             </Stack>
           </Stack>
           <DrawerController isOpen={isDrawerOpen}>
@@ -369,20 +375,20 @@ type RelationshipController = FieldController<
   string
 > & {
   display:
-    | {
-        mode: 'select';
-        refLabelField: string;
-      }
-    | {
-        mode: 'cards';
-        cardFields: readonly string[];
-        linkToItem: boolean;
-        removeMode: 'disconnect' | 'none';
-        inlineCreate: { fields: readonly string[] } | null;
-        inlineEdit: { fields: readonly string[] } | null;
-        inlineConnect: boolean;
-      }
-    | { mode: 'count' };
+  | {
+    mode: 'select';
+    refLabelField: string;
+  }
+  | {
+    mode: 'cards';
+    cardFields: readonly string[];
+    linkToItem: boolean;
+    removeMode: 'disconnect' | 'none';
+    inlineCreate: { fields: readonly string[] } | null;
+    inlineEdit: { fields: readonly string[] } | null;
+    inlineConnect: boolean;
+  }
+  | { mode: 'count' };
   listKey: string;
   refListKey: string;
   refFieldKey?: string;
@@ -399,19 +405,19 @@ export const controller = (
       hideCreate: boolean;
     } & (
       | {
-          displayMode: 'select';
-          refLabelField: string;
-        }
+        displayMode: 'select';
+        refLabelField: string;
+      }
       | {
-          displayMode: 'cards';
-          cardFields: readonly string[];
-          linkToItem: boolean;
-          removeMode: 'disconnect' | 'none';
-          inlineCreate: { fields: readonly string[] } | null;
-          inlineEdit: { fields: readonly string[] } | null;
-          inlineConnect: boolean;
-          refLabelField: string;
-        }
+        displayMode: 'cards';
+        cardFields: readonly string[];
+        linkToItem: boolean;
+        removeMode: 'disconnect' | 'none';
+        inlineCreate: { fields: readonly string[] } | null;
+        inlineEdit: { fields: readonly string[] } | null;
+        inlineConnect: boolean;
+        refLabelField: string;
+      }
       | { displayMode: 'count' }
     )
   >
@@ -425,17 +431,17 @@ export const controller = (
     display:
       config.fieldMeta.displayMode === 'cards'
         ? {
-            mode: 'cards',
-            cardFields: config.fieldMeta.cardFields,
-            inlineCreate: config.fieldMeta.inlineCreate,
-            inlineEdit: config.fieldMeta.inlineEdit,
-            linkToItem: config.fieldMeta.linkToItem,
-            removeMode: config.fieldMeta.removeMode,
-            inlineConnect: config.fieldMeta.inlineConnect,
-          }
+          mode: 'cards',
+          cardFields: config.fieldMeta.cardFields,
+          inlineCreate: config.fieldMeta.inlineCreate,
+          inlineEdit: config.fieldMeta.inlineEdit,
+          linkToItem: config.fieldMeta.linkToItem,
+          removeMode: config.fieldMeta.removeMode,
+          inlineConnect: config.fieldMeta.inlineConnect,
+        }
         : config.fieldMeta.displayMode === 'count'
-        ? { mode: 'count' }
-        : {
+          ? { mode: 'count' }
+          : {
             mode: 'select',
             refLabelField: config.fieldMeta.refLabelField,
           },
@@ -447,19 +453,19 @@ export const controller = (
             label: ${config.fieldMeta.refLabelField}
           }`
         : config.fieldMeta.displayMode === 'count'
-        ? `${config.path}Count`
-        : `${config.path} {
+          ? `${config.path}Count`
+          : `${config.path} {
               id
               label: ${config.fieldMeta.refLabelField}
             }`,
     hideCreate: config.fieldMeta.hideCreate,
     defaultValue: config.fieldMeta.many
       ? {
-          id: null,
-          kind: 'many',
-          initialValue: [],
-          value: [],
-        }
+        id: null,
+        kind: 'many',
+        initialValue: [],
+        value: [],
+      }
       : { id: null, kind: 'one', value: null, initialValue: null },
     deserialize: data => {
       if (config.fieldMeta.displayMode === 'count') {
@@ -470,8 +476,8 @@ export const controller = (
           (Array.isArray(data[config.path])
             ? data[config.path]
             : data[config.path]
-            ? [data[config.path]]
-            : []
+              ? [data[config.path]]
+              : []
           ).map((x: any) => x.id)
         );
         return {

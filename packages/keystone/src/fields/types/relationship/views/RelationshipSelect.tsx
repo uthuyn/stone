@@ -3,6 +3,7 @@
 
 import 'intersection-observer';
 import { RefObject, useEffect, useMemo, useState, createContext, useContext, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { jsx } from '@keystone-ui/core';
 import { MultiSelect, Select, selectComponents } from '@keystone-ui/fields';
@@ -93,7 +94,7 @@ const LoadingIndicatorContext = createContext<{
   ref: (element: HTMLElement | null) => void;
 }>({
   count: 0,
-  ref: () => {},
+  ref: () => { },
 });
 
 export const RelationshipSelect = ({
@@ -115,16 +116,16 @@ export const RelationshipSelect = ({
   placeholder?: string;
   portalMenu?: true | undefined;
   state:
-    | {
-        kind: 'many';
-        value: { label: string; id: string; data?: Record<string, any> }[];
-        onChange(value: { label: string; id: string; data: Record<string, any> }[]): void;
-      }
-    | {
-        kind: 'one';
-        value: { label: string; id: string; data?: Record<string, any> } | null;
-        onChange(value: { label: string; id: string; data: Record<string, any> } | null): void;
-      };
+  | {
+    kind: 'many';
+    value: { label: string; id: string; data?: Record<string, any> }[];
+    onChange(value: { label: string; id: string; data: Record<string, any> }[]): void;
+  }
+  | {
+    kind: 'one';
+    value: { label: string; id: string; data?: Record<string, any> } | null;
+    onChange(value: { label: string; id: string; data: Record<string, any> } | null): void;
+  };
   extraSelection?: string;
 }) => {
   const [search, setSearch] = useState('');
@@ -135,7 +136,7 @@ export const RelationshipSelect = ({
   const [loadingIndicatorElement, setLoadingIndicatorElement] = useState<null | HTMLElement>(null);
 
   const QUERY: TypedDocumentNode<
-    { items: { [idField]: string; [labelField]: string | null }[]; count: number },
+    { items: { [idField]: string;[labelField]: string | null }[]; count: number },
     { where: Record<string, any>; take: number; skip: number }
   > = gql`
     query RelationshipSelect($where: ${list.gqlNames.whereInputName}!, $take: Int!, $skip: Int!) {
@@ -227,7 +228,7 @@ export const RelationshipSelect = ({
           lastFetchMore?.skip !== skip)
       ) {
         const QUERY: TypedDocumentNode<
-          { items: { [idField]: string; [labelField]: string | null }[] },
+          { items: { [idField]: string;[labelField]: string | null }[] },
           { where: Record<string, any>; take: number; skip: number }
         > = gql`
               query RelationshipSelectMore($where: ${list.gqlNames.whereInputName}!, $take: Int!, $skip: Int!) {
@@ -280,11 +281,11 @@ export const RelationshipSelect = ({
           value={
             state.value
               ? {
-                  value: state.value.id,
-                  label: state.value.label,
-                  // @ts-ignore
-                  data: state.value.data,
-                }
+                value: state.value.id,
+                label: state.value.label,
+                // @ts-ignore
+                data: state.value.data,
+              }
               : null
           }
           options={options}
@@ -292,10 +293,10 @@ export const RelationshipSelect = ({
             state.onChange(
               value
                 ? {
-                    id: value.value,
-                    label: value.label,
-                    data: (value as any).data,
-                  }
+                  id: value.value,
+                  label: value.label,
+                  data: (value as any).data,
+                }
                 : null
             );
           }}
@@ -338,11 +339,13 @@ export const RelationshipSelect = ({
 const relationshipSelectComponents: Partial<typeof selectComponents> = {
   MenuList: ({ children, ...props }) => {
     const { count, ref } = useContext(LoadingIndicatorContext);
+    const { t } = useTranslation();
+
     return (
       <selectComponents.MenuList {...props}>
         {children}
         <div css={{ textAlign: 'center' }} ref={ref}>
-          {props.options.length < count && <span css={{ padding: 8 }}>Loading...</span>}
+          {props.options.length < count && <span css={{ padding: 8 }}>{t('Loading...')}</span>}
         </div>
       </selectComponents.MenuList>
     );

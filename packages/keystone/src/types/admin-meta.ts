@@ -50,6 +50,7 @@ export type FilterTypeToFormat<Value extends JSONValue> = {
 };
 
 export type FieldController<FormState, FilterValue extends JSONValue = never> = {
+  listKey: string;
   path: string;
   label: string;
   graphqlSelection: string;
